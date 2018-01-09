@@ -1,1 +1,61 @@
+#!/usr/bin/env python
 
+# coding: utf-8
+
+from influxdb import InfluxDBClient
+
+import socket
+
+host=""
+
+port=7776
+
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+s.bind(("",port))
+
+s.listen(5)
+
+
+
+client,adresse=s.accept()
+
+print "passrelle est connectée : ", adresse
+
+cl = InfluxDBClient('localhost', 8086, 'root', 'root', 'projet')
+
+while 1:	
+
+    message_p=client.recv(1024)
+
+    print "client >",message_p
+
+    id_noeud,id_capteur,valeur=message_p.split(":")
+
+    print id_noeud,"\n",id_capteur,"\n",valeur   
+
+    json_body = [
+
+      {
+
+        "measurement": "passrelle_1",
+
+        "tags": {
+
+            "noeud": id_noeud,
+
+            "capteur": id_capteur
+
+        },
+
+        "fields": {
+
+            "value": float(valeur)
+
+        }
+
+      }
+
+                ]
+
+    cl.write_points(json_body)
